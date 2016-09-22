@@ -16,6 +16,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        
+        // 向 APNs 请求 token：远程APNs token的申请没有在iOS10的新框架UserNotifications中
+        UIApplication.shared.registerForRemoteNotifications()
+
+        
         return true
     }
 
@@ -41,6 +46,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let tokenString = deviceToken.hexString
+        print("Get Push token: \(tokenString)")
+    }
 
+}
+
+extension Data {
+    var hexString: String {
+        return withUnsafeBytes {(bytes: UnsafePointer<UInt8>) -> String in
+            let buffer = UnsafeBufferPointer(start: bytes, count: count)
+            return buffer.map {String(format: "%02hhx", $0)}.reduce("", { $0 + $1 })
+        }
+    }
 }
 

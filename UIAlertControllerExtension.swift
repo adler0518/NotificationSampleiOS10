@@ -6,4 +6,18 @@
 //  Copyright © 2016年 jinfeng.du. All rights reserved.
 //
 
-import Foundation
+import UIKit
+
+extension UIAlertController {
+    static func showConfirmAlert(message: String, in viewController: UIViewController) {
+        let alert = UIAlertController(title: nil, message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .cancel))
+        viewController.present(alert, animated: true)
+    }
+    
+    static func showConfirmAlertFromTopViewController(message: String) {
+        if let vc = UIApplication.shared.keyWindow?.rootViewController {
+            showConfirmAlert(message: message, in: vc)
+        }
+    }
+}
