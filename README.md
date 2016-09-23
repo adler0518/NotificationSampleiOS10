@@ -82,7 +82,7 @@ iOS 10中以前杂乱的通知相关API被统一了，现在可以使用UserNoti
         }
     }
 
-**限制**： 这些文件都有尺寸的限制，图片不能超过 5MB，视频不能超过 50MB。
+**限制**： [这些文件都有尺寸的限制，音频不能超过5MB, 图片不能超过 10MB，视频不能超过 50MB。](https://developer.apple.com/reference/usernotifications/UNNotificationAttachment)
 
 **options选项：**
 
