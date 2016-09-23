@@ -70,8 +70,10 @@ iOS 10中以前杂乱的通知相关API被统一了，现在可以使用UserNoti
 `UNNotificationAttachment`,在创建 UNNotificationAttachment 时我们只能使用本地资源，所以，如果是网络图片或者音频则需要先将其下载到本地再加载。如果是remote通知在`payload`来指明图片，按照`UNNotificationServiceExtension`在push显示之前将其下载到本地再展示。
 `attachments`是个数组，push展示只展示第一个，不过可以通过`UNNotificationContentExtension`来实现切换，可参看demo中的`NotificationViewController.swift`类。
 
-`attachment`内容的读取，需要注意权限问题。可以使用 startAccessingSecurityScopedResource 来暂时获取以创建的 attachment 的访问权限。
 
+**读取：**`attachment`内容的读取，需要注意权限问题。可以使用 startAccessingSecurityScopedResource 来暂时获取以创建的 attachment 的访问权限。* 
+	
+ 
     let content = notification.request.content
     if let attachment = content.attachments.first {
         if attachment.url.startAccessingSecurityScopedResource() {
@@ -82,13 +84,25 @@ iOS 10中以前杂乱的通知相关API被统一了，现在可以使用UserNoti
 
 **限制**： 这些文件都有尺寸的限制，图片不能超过 5MB，视频不能超过 50MB。
 
+**options选项：**
+
+	//配置附件的类型的键 需要设置为NSString类型的值，如果不设置 则默认从扩展名中推断
+    extern NSString * const UNNotificationAttachmentOptionsTypeHintKey __IOS_AVAILABLE(10.0) __WATCHOS_AVAILABLE(3.0);
+    //配置是否隐藏缩略图的键 需要配置为NSNumber 0或者1
+    extern NSString * const UNNotificationAttachmentOptionsThumbnailHiddenKey __IOS_AVAILABLE(10.0) __WATCHOS_AVAILABLE(3.0);
+    //配置使用一个标准的矩形来对缩略图进行裁剪，需要配置为CGRectCreateDictionaryRepresentation(CGRect)创建的矩形引用
+    extern NSString * const UNNotificationAttachmentOptionsThumbnailClippingRectKey __IOS_AVAILABLE(10.0) __WATCHOS_AVAILABLE(3.0);
+    //使用视频中的某一帧作为缩略图 配置为NSNumber时间
+    extern NSString * const UNNotificationAttachmentOptionsThumbnailTimeKey __IOS_AVAILABLE(10.0) __WATCHOS_AVAILABLE(3.0);
+
+
 ###推送过程
 *Local Notifications 通过定义 `Content` 和 `Trigger` 向  `UNUserNotificationCenter` 进行 `request` 这三部曲来实现。
 
 *Remote Notifications 则向 `APNs` 发送 `Notification Payload`.
 
 ###Triggers
-有三种类型延时`UNTimeIntervalNotificationTrigger`，固定日期时间 `UNCalendarNotificationTrigger`，固定位置`UNLocationNotificationTrigger`。（从而可以实现地理围栏通知的需求了）
+有四种类型：延时触发`UNTimeIntervalNotificationTrigger`，指定日期触发 `UNCalendarNotificationTrigger`，根据位置触发，进入或者离开某个位置都会触发`UNLocationNotificationTrigger`（从而可以实现地理围栏通知的需求了），`UNPushNotificationTrigger` 触发APNS服务，系统自动设置（这是区分本地通知和远程通知的标识）
 
 	//2 分钟后提醒
     UNTimeIntervalNotificationTrigger *trigger1 = [UNTimeIntervalNotificationTrigger triggerWithTimeInterval:120 repeats:NO];
@@ -143,8 +157,17 @@ remote push 到达后，首先会调用`UNNotificationServiceExtension的didRece
 
 **remote push，包换网络图片或视频资源，则需要通过上面的方式先下载处理**
 
+###UNNotificationCategory
 使用`UNNotificationCategory`来创建扩展类，程序启动或者在使用之前将其添加到通知中心:
 >`UNUserNotificationCenter.current().setNotificationCategories([saySomethingCategory, customUICategory])`
+
+定义好了通知UI模板，若要进行使用，还需要再Notification Content扩展中的info.plist文件的NSExtension字典的NSExtensionAttributes字典里进行一些配置，正常情况下，开发者需要进行配置的键有3个，分别如下：
+
+1. UNNotificationExtensionCategory：设置模板的categoryId，用于与UNNotificationContent对应。
+2. UNNotificationExtensionInitialContentSizeRatio：设置自定义通知界面的高度与宽度的比，宽度为固定宽度，在不同设备上有差别，开发者需要根据宽度计算出高度进行设置，系统根据这个比值来计算通知界面的高度。
+3. UNNotificationExtensionDefaultContentHidden：是有隐藏系统默认的通知界面，不设置为不隐藏。
+
+**注意：** 要使用模板`UNNotificationCategory`，通知内容UNNotificationContent的categoryIdentifier要与UNNotificationCategory的id一致
 
 
 ### 适配
@@ -154,28 +177,6 @@ remote push 到达后，首先会调用`UNNotificationServiceExtension的didRece
     	// Use UserNotification
 	}
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
-
-
-		
 
 
 
